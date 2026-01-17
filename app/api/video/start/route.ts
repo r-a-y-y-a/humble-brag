@@ -58,7 +58,7 @@ export async function POST(req: Request) {
       // @ts-ignore - size, seconds, and input_reference may not be in types yet
       size: "1080x1920",
       // @ts-ignore
-      seconds: 20,
+      seconds: 12,
       // @ts-ignore
       input_reference: file,
     });
