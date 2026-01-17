@@ -24,16 +24,32 @@ export async function POST(req: Request) {
 
     const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
     
-    // Determine file extension from content type or URL
+    // Determine file extension and MIME type
     const contentType = imageResponse.headers.get("content-type") || "image/jpeg";
     let ext = ".jpg";
-    if (contentType.includes("png")) ext = ".png";
-    else if (contentType.includes("webp")) ext = ".webp";
-    else if (contentType.includes("jpeg") || contentType.includes("jpg")) ext = ".jpg";
+    let mimeType = "image/jpeg";
+    
+    if (contentType.includes("png")) {
+      ext = ".png";
+      mimeType = "image/png";
+    } else if (contentType.includes("webp")) {
+      ext = ".webp";
+      mimeType = "image/webp";
+    } else if (contentType.includes("jpeg") || contentType.includes("jpg")) {
+      ext = ".jpg";
+      mimeType = "image/jpeg";
+    }
     
     // Save to temp file with proper extension
     const tempPath = path.join(os.tmpdir(), `${jobId}_input${ext}`);
     fs.writeFileSync(tempPath, imageBuffer);
+
+    // Use OpenAI SDK with input_reference - create a File-like object with proper type
+    const file = await OpenAI.toFile(
+      fs.createReadStream(tempPath),
+      `input${ext}`,
+      { type: mimeType }
+    );
 
     // Use OpenAI SDK with input_reference
     const video = await openai.videos.create({
@@ -44,7 +60,7 @@ export async function POST(req: Request) {
       // @ts-ignore
       seconds: 20,
       // @ts-ignore
-      input_reference: await OpenAI.toFile(fs.createReadStream(tempPath), path.basename(tempPath)),
+      input_reference: file,
     });
 
     // Cleanup temp file
