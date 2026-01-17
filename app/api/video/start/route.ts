@@ -32,9 +32,11 @@ export async function POST(req: Request) {
     const video = await openai.videos.create({
       model: "sora-2",
       prompt: prompt,
+      // @ts-ignore - size, seconds, and input_reference may not be in types yet
       size: "1080x1920",
+      // @ts-ignore
       seconds: 8,
-      // @ts-ignore - input_reference may not be in types yet
+      // @ts-ignore
       input_reference: fs.createReadStream(tempPath),
     });
 
